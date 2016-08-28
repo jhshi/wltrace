@@ -1,78 +1,76 @@
-"""Common interfaces for :mod:`pyparser.capture` module.
+"""Packet trace parser.
+
+This module can load a packet trace, and yields a sequence of packets.
+Currently, only IEEE802.11 pakcet traces saved in Pcap or Omnipeek's peek-tagged
+format are supported. For Pcap format, this module can parse the Radiotap header
+if exists.
 """
 
-import struct
+import os
+import binascii
 import abc
 import io
 import collections
 
-class GenericHeader(object):
-    """Base class for general header structure.
-
-    This can be a file header, section header (peek-tagged), per-packet header
-    (pcap).
-
-    Args:
-        fh (file object): the file handle, which internal pointer points to the
-          start of the header.
-    """
-
-    PACK_PATTERN = None
-    """:mod:`struct` format string used to decode the header bytes.
-  """
-
-    FIELDS = None
-    """A list of string representing name of each field in the header, in the
-  order they appear in the ``PACK_PATTERN`` format.
-
-  It is important that the order of the filed names correspond *strictly* with
-  the order they appear in the header format. If the header has dummy fields,
-  such as padding bytes, you will have to also name them, although you can use
-  the same name for multiple dummy fields.
-  """
-
-    def __init__(self, fh, *args, **kwargs):
-        cls = self.__class__
-        header_len = struct.calcsize(cls.PACK_PATTERN)
-        raw = fh.read(header_len)
-        if len(raw) != header_len:
-            raise IOError('Short read bytes, excect %d, got %d' %
-                          (header_len, len(raw)))
-
-        self.payload = raw
-        self.offset = 0
-
-        fields = self.unpack(cls.PACK_PATTERN)
-        for i, attr in enumerate(cls.FIELDS):
-            setattr(self, attr, fields[i])
-
-    def unpack(self, fmt):
-        val = struct.unpack_from(fmt, self.payload, self.offset)
-        self.offset += struct.calcsize(fmt)
-        return val
-
-
-class CapturePacket(object):
-    """A minimal packet wrapper which only contains the counter and timestamp.
-
-    Many statistic information only need these two information. This is to let
-    them discard the original packet, which could potentially be very large, and
-    use this compact object instead, with the hope to reduce memory footprint.
-    """
-
-    def __init__(self, pkt):
-        for attr in ['counter', 'ts', 'epoch_ts', 'seq_num', 'retry']:
-            try:
-                setattr(self, attr, getattr(pkt, attr))
-            except:
-                pass
-
+import pcap
+import peektagged
 
 import dot11
 
+MAGIC_LEN = 4
+"""File type magic length in bytes.
+"""
 
-class CaptureFile(object):
-    """Base class that represents a packet trace.
+FILE_TYPE_HANDLER = {
+    pcap.PCAP_FILE_MAGIC_LE: pcap.PcapCapture,
+    pcap.PCAP_FILE_MAGIC_BE: pcap.PcapCapture,
+    pcap.PCAP_FILE_MAGIC_LE_NS: pcap.PcapCapture,
+    pcap.PCAP_FILE_MAGIC_BE_NS: pcap.PcapCapture,
+    peektagged.PEEKTAGGED_FILE_MAGIC: peektagged.PeektaggedCapture,
+}
+"""A map from magic bytes to file handler.
+"""
+
+
+def is_packet_trace(path):
+    path = os.path.abspath(path)
+    if not os.path.isfile(path):
+        return False
+
+    try:
+        f = open(path, 'rb')
+    except:
+        return False
+
+    magic = f.read(4)
+    f.close()
+
+    return magic in FILE_TYPE_HANDLER
+
+
+def load_trace(path, *args, **kwargs):
+    """Read a packet trace file, return a :class:`pyparser.capture.common.WlTrace` object.
+
+    No packet trace type is needed, this function will read the file's magic
+    (first ``FILE_TYPE_HANDLER`` bytes), and automatically determine the
+    file type, and call appropriate handler to process the file.
+
+    Args:
+        path (str): the file's path to be loaded.
+
+    Returns:
+        ``WlTrace`` object.
+    """
+    with open(path, 'rb') as f:
+        magic = f.read(MAGIC_LEN)
+    if magic not in FILE_TYPE_HANDLER:
+        raise Exception('Unknown file magic: %s' % (binascii.hexlify(magic)))
+
+    return FILE_TYPE_HANDLER[magic](path, *args, **kwargs)
+
+
+class WlTrace(object):
+    """Base class that represents a (wireless) packet trace.
 
     A packet trace is nothing but a sequence of packets. Therefore, the main
     interface of this object is to yield packet in order. In fact, the object
@@ -84,16 +82,16 @@ class CaptureFile(object):
         path (str): the path of the packet trace file.
 
     Example:
-        This is how ``CaptureFile`` is supposed to be used::
+        This is how ``WlTrace`` is supposed to be used::
 
-          cap = CaptureFile('path/to/packet/trace.pcap')
+          cap = WlTrace('path/to/packet/trace.pcap')
           for pkt in cap:
             print pkt.counter
     """
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, path, *args, **kwargs):
-        super(CaptureFile, self).__init__()
+        super(WlTrace, self).__init__()
 
         self.path = path
         self.fh = io.BufferedReader(io.open(path, 'rb'))
@@ -214,27 +212,3 @@ class CaptureFile(object):
 
     def appendleft(self, pkt):
         self.pkt_queue.appendleft(pkt)
-
-
-class PhyInfo(object):
-    """Packet PHY layer information.
-
-    PHY information is usually provided in the format of physical layer header,
-    such as Radiotap. PHY information includes:
-
-    * signal (int): received RSSI in dBm.
-    * noise (int): noise level in dBm.
-    * freq_mhz (int): channel central frequency.
-    * fcs_error (bool): True if this packet fails the FCS check.
-    * timestamp (:class:`datetime.datetime`): timestamp when this packet was
-      collected.
-    * rate (int): packet modulation rate, in the unit of 500 Kbps. For example, if
-      packet was sent at MCS 1 in 802.11n, that is, 13 Mbps, then this value is 26.
-    * len (int): packet original length in bytes, including 4 FCS bytes.
-    * caplen (int): actually stored bytes, probably smaller than ``len``.
-    """
-
-    def __init__(self, *args, **kwargs):
-        for attr in ['signal', 'noise', 'freq_mhz', 'has_fcs', 'fcs_error', 'timestamp',
-                     'rate', 'len', 'caplen', 'mactime', 'epoch_ts']:
-            setattr(self, attr, kwargs.get(attr, None))
