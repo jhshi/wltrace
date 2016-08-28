@@ -21,13 +21,13 @@ class GenericHeader(object):
 
     FIELDS = None
     """A list of string representing name of each field in the header, in the
-  order they appear in the ``PACK_PATTERN`` format.
+    order they appear in the ``PACK_PATTERN`` format.
 
-  It is important that the order of the filed names correspond *strictly* with
-  the order they appear in the header format. If the header has dummy fields,
-  such as padding bytes, you will have to also name them, although you can use
-  the same name for multiple dummy fields.
-  """
+    It is important that the order of the filed names correspond *strictly* with
+    the order they appear in the header format. If the header has dummy fields,
+    such as padding bytes, you will have to also name them, although you can use
+    the same name for multiple dummy fields.
+    """
 
     def __init__(self, fh, *args, **kwargs):
         cls = self.__class__
@@ -50,22 +50,6 @@ class GenericHeader(object):
         return val
 
 
-class CapturePacket(object):
-    """A minimal packet wrapper which only contains the counter and timestamp.
-
-    Many statistic information only need these two information. This is to let
-    them discard the original packet, which could potentially be very large, and
-    use this compact object instead, with the hope to reduce memory footprint.
-    """
-
-    def __init__(self, pkt):
-        for attr in ['counter', 'ts', 'epoch_ts', 'seq_num', 'retry']:
-            try:
-                setattr(self, attr, getattr(pkt, attr))
-            except:
-                pass
-
-
 class PhyInfo(object):
     """Packet PHY layer information.
 
@@ -74,17 +58,20 @@ class PhyInfo(object):
 
     * signal (int): received RSSI in dBm.
     * noise (int): noise level in dBm.
-    * freq_mhz (int): channel central frequency.
+    * freq_mhz (int): channel central frequency (MHz)
+    * channel (int): channel number.
     * fcs_error (bool): True if this packet fails the FCS check.
-    * timestamp (:class:`datetime.datetime`): timestamp when this packet was
-      collected.
-    * rate (int): packet modulation rate, in the unit of 500 Kbps. For example, if
-      packet was sent at MCS 1 in 802.11n, that is, 13 Mbps, then this value is 26.
+    * epoch_ts (float): Unix timestamp of the first bit of this packet
+    * end_epoc_ts (float): Unix timestamp of the last bit of this packet
+    * mcs (int): MCS index (http://mcsindex.com/)
+    * rate (float): packet modulation rate (Mbps)
     * len (int): packet original length in bytes, including 4 FCS bytes.
     * caplen (int): actually stored bytes, probably smaller than ``len``.
+    # mactime: MAC layer TSF counter.
     """
 
     def __init__(self, *args, **kwargs):
-        for attr in ['signal', 'noise', 'freq_mhz', 'has_fcs', 'fcs_error', 'timestamp',
-                     'rate', 'len', 'caplen', 'mactime', 'epoch_ts']:
+        for attr in ['signal', 'noise', 'freq_mhz', 'has_fcs', 'fcs_error', 'epoch_ts',
+                     'end_epoch_ts', 'rate', 'mcs', 'len', 'caplen',
+                     'mactime']:
             setattr(self, attr, kwargs.get(attr, None))

@@ -14,6 +14,8 @@ import radiotap
 import dot11
 import common
 
+import wltrace
+
 _PCAP_FILE_MAGIC_NUMBER = 0xa1b2c3d4
 _PCAP_FILE_MAGIC_NUMBER_NS = 0xa1b23c4d
 
@@ -24,14 +26,8 @@ _LINKTYPE_IEEE802_11 = 105
 _LINKTYPE_IEEE802_11_RADIOTAP = 127
 
 PCAP_FILE_MAGIC_LE = struct.pack('<I', _PCAP_FILE_MAGIC_NUMBER)
-"""Pcap file magic bytes in little endian.
-"""
-
-PCAP_FILE_MAGIC_BE = struct.pack('>I', _PCAP_FILE_MAGIC_NUMBER)
-"""Pcap file magic bytes in big endian.
-"""
-
 PCAP_FILE_MAGIC_LE_NS = struct.pack('<I', _PCAP_FILE_MAGIC_NUMBER_NS)
+PCAP_FILE_MAGIC_BE = struct.pack('>I', _PCAP_FILE_MAGIC_NUMBER)
 PCAP_FILE_MAGIC_BE_NS = struct.pack('>I', _PCAP_FILE_MAGIC_NUMBER_NS)
 
 
@@ -49,8 +45,7 @@ class PcapHeader(common.GenericHeader):
     file.
 
     Args:
-        fh (file object): the packet trace file. The file's pointer should point
-          to the beginning of the file.
+        fh (file object): the packet trace file.
     """
 
     _PACK_PATTERN_BASE = "IHHiIII"
@@ -64,30 +59,24 @@ class PcapHeader(common.GenericHeader):
         'network',
     ]
 
-    def __init__(self, fh=None, *args, **kwargs):
-        magic = fh.read(4)
+    def __init__(self, fh, *args, **kwargs):
         fh.seek(0)
-        if magic == PCAP_FILE_MAGIC_LE:
-            self.endian = '<'   # little endian
-            self.nano_ts = False
-        elif magic == PCAP_FILE_MAGIC_LE_NS:
-            self.endian = '<'
-            self.nano_ts = True
-        elif magic == PCAP_FILE_MAGIC_BE:
-            self.endian = '>'   # big endian
-            self.nano_ts = False
-        elif magic == PCAP_FILE_MAGIC_BE_NS:
-            self.endian = '>'
-            self.nano_ts = True
-        else:
+        magic = fh.read(4)
+
+        if magic not in [PCAP_FILE_MAGIC_LE, PCAP_FILE_MAGIC_LE_NS,
+                         PCAP_FILE_MAGIC_BE, PCAP_FILE_MAGIC_BE_NS]:
             raise Exception("Unknown file magic: %s" % (binascii(magic)))
+
+        self.endian = '<' if magic in [PCAP_FILE_MAGIC_LE,
+                                       PCAP_FILE_MAGIC_LE_NS] else '>'
+        self.nano_ts = magic in [PCAP_FILE_MAGIC_LE_NS, PCAP_FILE_MAGIC_BE_NS]
 
         cls = self.__class__
         cls.PACK_PATTERN = '%s%s' % (self.endian, cls._PACK_PATTERN_BASE)
-
         super(cls, self).__init__(fh, *args, **kwargs)
 
-        if self.version_major != 2 or self.version_minor != 4:
+        if self.version_major != _PCAP_VERSION_MAJOR or\
+                self.version_major != _PCAP_VERSION_MINOR:
             raise PcapException('Expect PCAP version 2.4, got %d.%d'
                                 % (self.version_major, self.version_minor))
 
@@ -111,14 +100,14 @@ class PcapPacketHeader(common.GenericHeader):
         'orig_len',
     ]
 
-    def __init__(self, fh, endian, nano_ts, *args, **kwargs):
+    def __init__(self, fh, header, *args, **kwargs):
         cls = self.__class__
-        cls.PACK_PATTERN = '%s%s' % (endian, cls._PACK_PATTERN_BASE)
+        cls.PACK_PATTERN = '%s%s' % (header.endian, cls._PACK_PATTERN_BASE)
 
         super(cls, self).__init__(fh, *args, **kwargs)
-        self.timestamp = datetime.datetime.fromtimestamp(self.ts_sec +
-                                                         self.ts_usec / (1e9 if nano_ts else 1e6))
-        self.epoch_ts = self.ts_sec + self.ts_usec / 1.0e6
+        self.epoch_ts = self.ts_sec
+        self.epoch_ts += self.ts_usec / (1e9 if header.nano_ts else 1e6)
+        self.epoch_ts += header.thiszone
 
     @classmethod
     def encapsulate(cls, pkt, endian='@'):
@@ -131,8 +120,10 @@ class PcapPacketHeader(common.GenericHeader):
         return '%s%s%s' % (struct.pack(pattern, ts_sec, ts_usec, incl_len, orig_len), phy, pkt.raw)
 
 
-class PcapCapture(common.CaptureFile):
+class PcapCapture(wltrace.WlTrace):
     """Represent a Pcap packet trace.
+
+    Currently only support two link types.
     """
 
     LINKTYPES = [
@@ -157,8 +148,7 @@ class PcapCapture(common.CaptureFile):
                 f.write(PcapPacketHeader.encapsulate(pkt))
 
     def _read_one_pkt(self):
-        pkt_header = PcapPacketHeader(
-            self.fh, self.header.endian, self.header.nano_ts)
+        pkt_header = PcapPacketHeader(self.fh, self.header)
         if pkt_header.incl_len > self.header.snaplen:
             raise PcapException("snaplen: %d, incl_len: %d" %
                                 (self.header.snaplen, pkt_header.incl_len))
@@ -177,12 +167,8 @@ class PcapCapture(common.CaptureFile):
             phy.fcs_error = False
 
         phy.caplen = pkt_header.incl_len
-        phy.timestamp = pkt_header.timestamp + \
-            datetime.timedelta(seconds=self.header.thiszone)
         phy.epoch_ts = pkt_header.epoch_ts
         if self.fix_timestamp and phy.rate is not None:
-            phy.timestamp -= datetime.timedelta(
-                microseconds=(phy.len * 8 / phy.rate))
             phy.epoch_ts -= phy.len * 8 / phy.rate * 1e-6
 
         pkt = dot11.Dot11Packet(pkt_fh, phy=phy, counter=self.counter)

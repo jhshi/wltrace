@@ -1,4 +1,4 @@
-"""Packet trace parser.
+"""Wireless Packet Trace
 
 This module can load a packet trace, and yields a sequence of packets.
 Currently, only IEEE802.11 pakcet traces saved in Pcap or Omnipeek's peek-tagged
@@ -33,6 +33,8 @@ FILE_TYPE_HANDLER = {
 
 
 def is_packet_trace(path):
+    """Determine if a file is a packet trace that is supported by this module.
+    """
     path = os.path.abspath(path)
     if not os.path.isfile(path):
         return False
