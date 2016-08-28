@@ -1,0 +1,11 @@
+/build
+/dist
+/*.spec
+/*.egg-info
+/MANIFEST
+/.virtualenv
+/figures
+/.cache
+/*.pdf
+win_test
+*.dot
