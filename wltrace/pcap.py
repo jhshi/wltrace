@@ -8,13 +8,10 @@ try:
 except:
     from StringIO import StringIO
 
-import datetime
-
 import radiotap
 import dot11
-import common
 
-import wltrace
+from common import WlTrace, GenericHeader, PhyInfo
 
 _PCAP_FILE_MAGIC_NUMBER = 0xa1b2c3d4
 _PCAP_FILE_MAGIC_NUMBER_NS = 0xa1b23c4d
@@ -35,7 +32,7 @@ class PcapException(Exception):
     pass
 
 
-class PcapHeader(common.GenericHeader):
+class PcapHeader(GenericHeader):
     """Pcap file header.
 
     The format is documented here:
@@ -62,6 +59,7 @@ class PcapHeader(common.GenericHeader):
     def __init__(self, fh, *args, **kwargs):
         fh.seek(0)
         magic = fh.read(4)
+        fh.seek(0)
 
         if magic not in [PCAP_FILE_MAGIC_LE, PCAP_FILE_MAGIC_LE_NS,
                          PCAP_FILE_MAGIC_BE, PCAP_FILE_MAGIC_BE_NS]:
@@ -76,7 +74,7 @@ class PcapHeader(common.GenericHeader):
         super(cls, self).__init__(fh, *args, **kwargs)
 
         if self.version_major != _PCAP_VERSION_MAJOR or\
-                self.version_major != _PCAP_VERSION_MINOR:
+                self.version_minor != _PCAP_VERSION_MINOR:
             raise PcapException('Expect PCAP version 2.4, got %d.%d'
                                 % (self.version_major, self.version_minor))
 
@@ -88,7 +86,7 @@ class PcapHeader(common.GenericHeader):
                            _PCAP_VERSION_MINOR, 0, 0, snaplen, network)
 
 
-class PcapPacketHeader(common.GenericHeader):
+class PcapPacketHeader(GenericHeader):
     """Per packet header in Pcap format.
     """
 
@@ -120,7 +118,7 @@ class PcapPacketHeader(common.GenericHeader):
         return '%s%s%s' % (struct.pack(pattern, ts_sec, ts_usec, incl_len, orig_len), phy, pkt.raw)
 
 
-class PcapCapture(wltrace.WlTrace):
+class PcapCapture(WlTrace):
     """Represent a Pcap packet trace.
 
     Currently only support two link types.
@@ -139,6 +137,8 @@ class PcapCapture(wltrace.WlTrace):
         if self.header.network not in cls.LINKTYPES:
             raise PcapException("Unsupported link type: %d" %
                                 (self.header.network))
+        if self.header.network == _LINKTYPE_IEEE802_11_RADIOTAP:
+            self.has_phy_info = True
 
     @classmethod
     def save(cls, path, pkts):
@@ -162,9 +162,7 @@ class PcapCapture(wltrace.WlTrace):
             phy = radiotap.RadiotapHeader(pkt_fh)
             phy.len = pkt_header.orig_len - phy.it_len
         else:
-            phy = radiotap.RadiotapHeader()
-            phy.len = pkt_header.orig_len
-            phy.fcs_error = False
+            phy = PhyInfo(has_fcs=False, len=self.header.orig_len)
 
         phy.caplen = pkt_header.incl_len
         phy.epoch_ts = pkt_header.epoch_ts

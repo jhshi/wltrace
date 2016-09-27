@@ -7,7 +7,7 @@ import math
 import binascii
 import hashlib
 
-import common
+from common import GenericHeader, PhyInfo
 import utils
 
 
@@ -237,7 +237,7 @@ class Beacon(object):
 
 
 
-class Dot11Packet(common.GenericHeader):
+class Dot11Packet(GenericHeader):
     """IEEE802.11 packet.
 
     This class parse as much as possible depending on the packet type and subtype.
@@ -292,7 +292,7 @@ class Dot11Packet(common.GenericHeader):
             self.real = False
             for k, v in kwargs.items():
                 setattr(self, k, v)
-            self.phy = common.PhyInfo()
+            self.phy = PhyInfo()
             return
 
         packet_start = fh.tell()

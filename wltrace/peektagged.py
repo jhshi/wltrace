@@ -23,7 +23,7 @@ import dot11
 import xml.etree.ElementTree as ET
 
 
-import common
+from common import WlTrace, GenericHeader, PhyInfo
 import utils
 
 PEEKTAGGED_FILE_MAGIC = '\x7fver'
@@ -37,7 +37,7 @@ class PeektaggedException(Exception):
     pass
 
 
-class PeektaggedSectionHeader(common.GenericHeader):
+class PeektaggedSectionHeader(GenericHeader):
     """Peek-tagged section header.
 
     Args:
@@ -126,10 +126,10 @@ class PeektaggedPacketHeader(object):
         for attr in ['signal', 'noise', 'freq_mhz', 'fcs_error', 'rate', 'len',
                      'caplen', 'timestamp', 'epoch_ts']:
             kwargs[attr] = getattr(self, attr)
-        return common.PhyInfo(**kwargs)
+        return PhyInfo(**kwargs)
 
 
-class PeektaggedCapture(common.CaptureFile):
+class PeektaggedCapture(WlTrace):
     """Peek-tagged capture file.
 
     Here we know the total number of packets beforehand from the "sess"" section.

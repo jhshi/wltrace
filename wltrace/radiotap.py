@@ -9,6 +9,8 @@ import utils
 
 import dot11
 
+_IT_VERSION = 0
+
 _CHANNEL_FLAG_TURBO = 0x0010
 _CHANNEL_FLAG_CCK = 0x0020
 _CHANNEL_FLAG_OFDM = 0x0040
@@ -52,14 +54,13 @@ class RadiotapHeader(common.GenericHeader):
 
     PACK_PATTERN = '<BBHI'
     """Radiotap header is always in little endian.
-  """
+    """
     FIELDS = [
         'it_version',
         'it_pad',
         'it_len',
         'it_present',
     ]
-    IT_VERSION = 0
 
     PRESENT_FLAGS = [
         # (idx, unpack_fmt, field, align)
@@ -82,14 +83,11 @@ class RadiotapHeader(common.GenericHeader):
         (20, 'IHxx', 'ampdu', 4),
     ]
 
-    def __init__(self, fh=None, *args, **kwargs):
-        if fh is None:
-            return
-
+    def __init__(self, fh, *args, **kwargs):
         cls = self.__class__
         super(cls, self).__init__(fh, *args, **kwargs)
 
-        if self.it_version != cls.IT_VERSION:
+        if self.it_version != _IT_VERSION:
             raise Exception('Incorrect version: expect %d, got %d' %
                             (cls.IT_VERSION, self.it_version))
 
@@ -100,12 +98,11 @@ class RadiotapHeader(common.GenericHeader):
                             (rest_len, len(rest)))
 
         offset = 0
-        if self.it_present & (1 << 31) != 0:
-            while True:
-                present, = struct.unpack_from('<I', rest, offset)
-                offset += 4
-                if present & (1 << 31) == 0:
-                    break
+        present = self.it_present
+        while (present >> 31) > 0:
+            present, = struct.unpack_from('<I', rest, offset)
+            offset += 4
+            self.it_present = (present << (offset*8)) + self.it_present
 
         for idx, fmt, field, align in cls.PRESENT_FLAGS:
             if self.it_present & (1 << idx):
