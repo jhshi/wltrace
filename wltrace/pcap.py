@@ -161,10 +161,11 @@ class PcapCapture(WlTrace):
         if self.header.network == _LINKTYPE_IEEE802_11_RADIOTAP:
             phy = radiotap.RadiotapHeader(pkt_fh)
             phy.len = pkt_header.orig_len - phy.it_len
+            phy.caplen = pkt_header.incl_len - phy.it_len
         else:
             phy = PhyInfo(has_fcs=False, len=self.header.orig_len)
+            phy.caplen = pkt_header.incl_len
 
-        phy.caplen = pkt_header.incl_len
         phy.epoch_ts = pkt_header.epoch_ts
         if self.fix_timestamp and phy.rate is not None:
             phy.epoch_ts -= phy.len * 8 / phy.rate * 1e-6
