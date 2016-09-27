@@ -1,11 +1,13 @@
 import os
+import sys
 
-from wltrace import wltrace
-from wltrace import dot11
+TEST_ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(TEST_ROOT)
+TEST_INPUT_DIR = os.path.join(TEST_ROOT, 'testing_inputs')
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))))
-TEST_INPUT_DIR = os.path.join(PROJECT_ROOT, 'testing_inputs')
+sys.path.insert(0, PROJECT_ROOT)
+
+from wltrace import wltrace, dot11
 
 
 def test_pcap():

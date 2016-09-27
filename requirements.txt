@@ -1,3 +1,9 @@
-numpy
-progressbar
-python-dateutil
+numpy==1.11.1
+pluggy==0.3.1
+progressbar==2.3
+py==1.4.31
+pytest==3.0.2
+python-dateutil==2.5.3
+six==1.10.0
+tox==2.3.1
+virtualenv==15.0.3
