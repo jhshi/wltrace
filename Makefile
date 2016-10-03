@@ -1,5 +1,5 @@
 PKG=wltrace
-VERSION=$(shell python -c "from wltrace.version import __version__; print __version__")
+VERSION=$(shell python -c "from wltrace import __version__; print __version__")
 
 
 clean:
@@ -8,9 +8,10 @@ clean:
 test:
 	tox
 
-publish: clean test
+publish: test
 	git tag -a $(VERSION) -m "v$(VERSION)" -f
 	git push origin --tags
+	make clean
 	python setup.py sdist upload -r pypi
 
 .PHONY: test clean publish
