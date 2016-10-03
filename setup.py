@@ -46,25 +46,30 @@ class Tox(TestCommand):
 setup(
     name='wltrace',
     version=__version__,
+    description="A library to parse wireless packet traces.",
 
     author='Jinghao Shi',
-    author_email='jinghaos@buffalo.edu',
+    author_email='jhshi89@gmail.com',
 
-    url='',
+    url='https://github.com/jhshi/wltrace',
+    download_url='https://github.com/jhshi/wltrace/tarball/%s' % (__version__),
 
     classifiers=[
-      'Development Status :: 3 - Alpha',
-      'Intended Audience :: Developers',
-
-      'Programming Language :: Python :: 2',
-      'Programming Language :: Python :: 2.7',
-      ],
+        'Development Status :: 3 - Alpha',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: System :: Networking :: Monitoring',
+    ],
+    keywords=['pcap', 'peektagged', 'trace'],
 
     packages=find_packages(),
 
     install_requires=requirements,
 
     tests_require=['tox'],
-    cmdclass = {'test': Tox},
+    cmdclass={'test': Tox},
     include_package_data=True,
-    )
+)
