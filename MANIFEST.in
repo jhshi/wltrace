@@ -1,3 +1,4 @@
 include README.rst
 include common-requirements.txt py27-requirements.txt pypy-requirements.txt
+global-exclude *.pyc
 recursive-include wltrace *
