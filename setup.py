@@ -8,7 +8,7 @@ import platform
 import os
 from setuptools.command.test import test as TestCommand
 
-from wltrace.version import __version__
+from wltrace import __version__
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
