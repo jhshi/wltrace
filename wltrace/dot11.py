@@ -236,7 +236,6 @@ class Beacon(object):
             self.ssid, = pkt.unpack('<%ds' % (len))
 
 
-
 class Dot11Packet(GenericHeader):
     """IEEE802.11 packet.
 
@@ -346,7 +345,7 @@ class Dot11Packet(GenericHeader):
 
     @property
     def src(self):
-        """Shortcut to ``pkt.addr``.
+        """Shortcut to ``pkt.addr2``.
         """
         return getattr(self, 'addr2', None)
 
@@ -368,15 +367,11 @@ class Dot11Packet(GenericHeader):
     def ts(self):
         """Shortcut to ``pkt.phy.timestamp``.
         """
-        return self.phy.timestamp
+        return datetime.datetime.fromtimestamp(self.phy.epoch_ts)
 
     @property
     def end_ts(self):
-        return self.phy.timestamp + datetime.timedelta(microseconds=(8 * self.phy.len / self.phy.rate))
-
-    @ts.setter
-    def ts(self, val):
-        self.phy.timestamp = val
+        return datetime.datetime.fromtimestamp(self.phy.end_epoch_ts)
 
     @property
     def epoch_ts(self):
@@ -384,7 +379,7 @@ class Dot11Packet(GenericHeader):
 
     @property
     def end_epoch_ts(self):
-        return self.phy.epoch_ts + self.phy.len * 8 / self.phy.rate * 1e-6
+        return self.phy.end_epoch_ts
 
     @property
     def hash(self):
