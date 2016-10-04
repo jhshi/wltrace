@@ -8,13 +8,12 @@ clean:
 	find ./$(PKG) -name "*.pyc" -exec rm -rfv {} \;
 
 test:
-	pytest
+	tox
 
-publish:
+publish: test
 	git diff-index --quiet HEAD --
 	test ! `find $(DIST_DIR) -name "*$(VERSION)*" -quit`
 	@echo "Releasing version $(VERSION)"
-	tox
 	make clean
 	python setup.py sdist upload -r pypi
 	git tag -a $(VERSION) -m "v$(VERSION)"
