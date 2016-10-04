@@ -5,4 +5,7 @@
     :target: http://wltrace.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://coveralls.io/repos/github/jhshi/wltrace/badge.svg?branch=master
+    :target: https://coveralls.io/github/jhshi/wltrace?branch=master
+
 Documentation at http://wltrace.readthedocs.io.
