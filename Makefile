@@ -11,7 +11,7 @@ test:
 publish:
 	@echo "Releasing version $(VERSION)"
 	tox
-	git tag -a $(VERSION) -m "v$(VERSION)" -f
+	git tag -a $(VERSION) -m "v$(VERSION)"
 	git push origin --tags
 	make clean
 	python setup.py sdist upload -r pypi
