@@ -4,3 +4,5 @@
 .. image:: https://readthedocs.org/projects/wltrace/badge/?version=latest
     :target: http://wltrace.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+
+Documentation at http://wltrace.readthedocs.io.
