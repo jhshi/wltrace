@@ -12,6 +12,9 @@ install:
             pyenv install pypy-5.4.1
             pyenv global pypy-5.4.1
             pip install git+https://bitbucket.org/pypy/numpy.git
+            pip install -r pypy-requirements.txt
+        else
+            pip install -r py27-requirements.txt
         fi
     - pip install tox-travis
 script:

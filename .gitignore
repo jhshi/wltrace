@@ -9,3 +9,5 @@
 /*.pdf
 *.dot
 .tox
+.coverage
+.eggs
