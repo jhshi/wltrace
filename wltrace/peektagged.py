@@ -103,19 +103,22 @@ class PeektaggedPacketHeader(object):
                 break
 
         if hasattr(self, 'ext_flags') and self.ext_flags & EXT_FLAGS_MCS_INDEX_USED:
-            self.rate = dot11.mcs_to_rate(self.rate)
+            self.mcs = self.rate
+            self.rate = dot11.mcs_to_rate(self.mcs)
         else:
+            self.mcs = None
             self.rate /= 2.0
 
         self.epoch_ts = utils.win_ts_to_unix_epoch(self.ts_high, self.ts_low)
-        self.timestamp = utils.win_ts(self.ts_high, self.ts_low)
 
         # the timestamp in the header is the last bit of the packet, convert it to
         # the first bit of the packet
         if self.rate > 0:
             pkt_duration = self.len * 8 / self.rate * 1e-6
-            self.timestamp -= datetime.timedelta(seconds=pkt_duration)
+            self.end_epoch_ts = self.epoch_ts
             self.epoch_ts -= pkt_duration
+        else:
+            self.end_epoch_ts = None
 
         self.fcs_error = (self.flags & 0x0002) > 0
 
@@ -123,9 +126,10 @@ class PeektaggedPacketHeader(object):
         """Convert this to the standard :class:`pyparser.capture.common.PhyInfo` class.
         """
         kwargs = {}
-        for attr in ['signal', 'noise', 'freq_mhz', 'fcs_error', 'rate', 'len',
-                     'caplen', 'timestamp', 'epoch_ts']:
-            kwargs[attr] = getattr(self, attr)
+        for attr in ['signal', 'noise', 'freq_mhz', 'fcs_error', 'rate', 'mcs',
+                     'len', 'caplen', 'epoch_ts', 'end_epoch_ts']:
+            kwargs[attr] = getattr(self, attr, None)
+        kwargs['has_fcs'] = True
         return PhyInfo(**kwargs)
 
 
