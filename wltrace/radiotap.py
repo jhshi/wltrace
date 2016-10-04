@@ -56,18 +56,18 @@ class RadiotapHeader(common.GenericHeader):
     """Radiotap header is always in little endian.
     """
     FIELDS = [
-        'it_version',
-        'it_pad',
-        'it_len',
-        'it_present',
+        '_it_version',
+        '_it_pad',
+        '_it_len',
+        '_it_present',
     ]
 
     PRESENT_FLAGS = [
         # (idx, unpack_fmt, field, align)
         (0, 'Q', 'mactime', 8),
-        (1, 'B', 'flags', 1),
+        (1, 'B', '_flags', 1),
         (2, 'B', 'rate', 1),
-        (3, 'I', 'channel', 2),
+        (3, 'I', '_channel', 2),
         (4, 'xx', 'unused', 1),
         (5, 'b', 'signal', 1),
         (6, 'b', 'noise', 1),
@@ -80,32 +80,32 @@ class RadiotapHeader(common.GenericHeader):
         (13, 'x', 'unused', 1),
         (14, 'xx', 'unused', 2),
         (19, 'bbb', 'mcs', 1),
-        (20, 'IHxx', 'ampdu', 4),
+        (20, 'IHxx', '_ampdu', 4),
     ]
 
     def __init__(self, fh, *args, **kwargs):
         cls = self.__class__
         super(cls, self).__init__(fh, *args, **kwargs)
 
-        if self.it_version != _IT_VERSION:
+        if self._it_version != _IT_VERSION:
             raise Exception('Incorrect version: expect %d, got %d' %
-                            (cls.IT_VERSION, self.it_version))
+                            (cls._it_version, self._it_version))
 
-        rest_len = self.it_len - struct.calcsize(cls.PACK_PATTERN)
+        rest_len = self._it_len - struct.calcsize(cls.PACK_PATTERN)
         rest = fh.read(rest_len)
         if len(rest) != rest_len:
             raise Exception('Short read: expect %d, got %d' %
                             (rest_len, len(rest)))
 
         offset = 0
-        present = self.it_present
+        present = self._it_present
         while (present >> 31) > 0:
             present, = struct.unpack_from('<I', rest, offset)
             offset += 4
-            self.it_present = (present << (offset*8)) + self.it_present
+            self._it_present = (present << (offset*8)) + self._it_present
 
         for idx, fmt, field, align in cls.PRESENT_FLAGS:
-            if self.it_present & (1 << idx):
+            if self._it_present & (1 << idx):
                 offset = utils.align_up(offset, align)
                 val = struct.unpack_from(fmt, rest, offset)
                 if len(val) == 1:
@@ -115,24 +115,24 @@ class RadiotapHeader(common.GenericHeader):
             else:
                 setattr(self, field, None)
 
-        if self.it_present & _PRESENT_FLAG_CHANNEL:
-            self.freq_mhz = self.channel & 0x0000ffff
-            self.freq_flag = self.channel >> 16
+        if self._it_present & _PRESENT_FLAG_CHANNEL:
+            self.freq_mhz = self._channel & 0x0000ffff
+            self.freq_flag = self._channel >> 16
         else:
             self.freq_mhz = None
             self.freq_flag = None
 
-        if self.it_present & _PRESENT_FLAG_FLAG:
-            self.has_fcs = self.flags & _FLAG_HAS_FCS
-            self.fcs_error = self.flags & _FLAG_FCS_ERROR
+        if self._it_present & _PRESENT_FLAG_FLAG:
+            self.has_fcs = self._flags & _FLAG_HAS_FCS
+            self.fcs_error = self._flags & _FLAG_FCS_ERROR
         else:
             self.has_fcs = False
             self.fcs_error = None
 
-        if self.it_present & _PRESENT_FLAG_RATE:
+        if self._it_present & _PRESENT_FLAG_RATE:
             self.rate /= 2.0
 
-        if self.it_present & _PRESENT_FLAG_MCS:
+        if self._it_present & _PRESENT_FLAG_MCS:
             mcs_known, mcs_flags, self.mcs = self.mcs
             if mcs_flags & 0x3 in [0, 2, 3]:
                 bw = 20
@@ -141,8 +141,8 @@ class RadiotapHeader(common.GenericHeader):
             long_gi = (mcs_flags & 0x4) == 0
             self.rate = dot11.mcs_to_rate(self.mcs, bw, long_gi)
 
-        if self.it_present & _PRESENT_FLAG_AMPDU:
-            self.ampdu_ref, ampdu_flag = self.ampdu
+        if self._it_present & _PRESENT_FLAG_AMPDU:
+            self.ampdu_ref, ampdu_flag = self._ampdu
             self.last_frame = ampdu_flag & 0x8 > 0
 
     @classmethod
@@ -153,11 +153,11 @@ class RadiotapHeader(common.GenericHeader):
             header.freq_flag = _CHANNEL_FLAG_2GHZ | _CHANNEL_FLAG_OFDM
         else:
             header.freq_flag = _CHANNEL_FLAG_5GHZ | _CHANNEL_FLAG_OFDM
-        header.channel = (header.freq_flag << 16) + header.freq_mhz
+        header._channel = (header.freq_flag << 16) + header.freq_mhz
 
-        header.flags = _FLAG_HAS_FCS
+        header._flags = _FLAG_HAS_FCS
         if phy.fcs_error:
-            header.flags |= _FLAG_FCS_ERROR
+            header._flags |= _FLAG_FCS_ERROR
 
         if phy.rate < 256:
             header.rate = phy.rate
@@ -166,6 +166,9 @@ class RadiotapHeader(common.GenericHeader):
         header.len = phy.len
         header.caplen = phy.caplen
         return header
+
+    def to_phy(self):
+        return common.PhyInfo(**self.__dict__)
 
     def to_binary(self):
         cls = self.__class__

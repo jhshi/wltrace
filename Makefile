@@ -6,9 +6,11 @@ clean:
 	find ./$(PKG) -name "*.pyc" -exec rm -rfv {} \;
 
 test:
-	tox
+	pytest tests/
 
-publish: test
+publish:
+	@echo "Releasing version $(VERSION)"
+	tox
 	git tag -a $(VERSION) -m "v$(VERSION)" -f
 	git push origin --tags
 	make clean

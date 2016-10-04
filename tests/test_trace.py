@@ -31,7 +31,7 @@ def test_pcap():
     assert pkt.phy.mcs is None
     assert pkt.phy.mactime == 84523414517
     assert abs(pkt.phy.epoch_ts - 1474410869.121930000) < 1e-6
-    assert (pkt.phy.end_epoch_ts - pkt.phy.epoch_ts)*6e6/8 == pkt.phy.len
+    assert abs(pkt.phy.end_epoch_ts - pkt.phy.epoch_ts - pkt.air_time()) < 1e-6
 
     # MAC
     assert pkt.type == dot11.DOT11_TYPE_MANAGEMENT
@@ -39,7 +39,7 @@ def test_pcap():
     assert not pkt.from_ds
     assert not pkt.to_ds
     assert not pkt.more_frag
-    assert not pkt.rety
+    assert not pkt.retry
     assert not pkt.power
     assert not pkt.more_data
     assert not pkt.protected
@@ -48,3 +48,4 @@ def test_pcap():
     assert dot11.is_broadcast(pkt.dest)
     assert pkt.src == '10:fe:ed:e5:8c:97'
     assert pkt.seq_num == 2651
+    assert pkt.frag_num == 0

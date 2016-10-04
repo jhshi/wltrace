@@ -77,7 +77,7 @@ class PhyInfo(object):
     def __init__(self, *args, **kwargs):
         for attr in ['signal', 'noise', 'freq_mhz', 'has_fcs', 'fcs_error',
                      'epoch_ts', 'end_epoch_ts', 'rate', 'mcs', 'len', 'caplen',
-                     'mactime']:
+                     'mactime', 'ampdu_ref', 'last_ampdu']:
             setattr(self, attr, kwargs.get(attr, None))
 
 

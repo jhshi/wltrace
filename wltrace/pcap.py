@@ -159,9 +159,10 @@ class PcapCapture(WlTrace):
 
         pkt_fh = StringIO(raw)
         if self.header.network == _LINKTYPE_IEEE802_11_RADIOTAP:
-            phy = radiotap.RadiotapHeader(pkt_fh)
-            phy.len = pkt_header.orig_len - phy.it_len
-            phy.caplen = pkt_header.incl_len - phy.it_len
+            rh = radiotap.RadiotapHeader(pkt_fh)
+            phy = rh.to_phy()
+            phy.len = pkt_header.orig_len - rh._it_len
+            phy.caplen = pkt_header.incl_len - rh._it_len
         else:
             phy = PhyInfo(has_fcs=False, len=self.header.orig_len)
             phy.caplen = pkt_header.incl_len
@@ -171,6 +172,10 @@ class PcapCapture(WlTrace):
             phy.epoch_ts -= phy.len * 8 / phy.rate * 1e-6
 
         pkt = dot11.Dot11Packet(pkt_fh, phy=phy, counter=self.counter)
+        try:
+            phy.end_epoch_ts = phy.epoch_ts + pkt.air_time()
+        except:
+            pass
         self.counter += 1
         return pkt
 
@@ -182,7 +187,7 @@ class PcapCapture(WlTrace):
         for unused in xrange(n):
             try:
                 pkt = self._read_one_pkt()
-                if pkt.phy.ampdu is not None:
+                if pkt.phy.ampdu_ref is not None:
                     # read all packets in this ampdu
                     ampdu_ref = pkt.phy.ampdu_ref
                     while pkt.phy.ampdu is not None and pkt.phy.ampdu_ref == ampdu_ref:
