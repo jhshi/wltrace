@@ -44,6 +44,7 @@ help:
 	@echo "  coverage   to run coverage check of the documentation (if enabled)"
 	@echo "  dummy      to check syntax errors of document sources"
 	@echo "  livehtml   to continously build and serve
+	@echo "  doc        to use sphinx-apidoc to parse docstrings"
 
 .PHONY: clean
 clean:
@@ -228,3 +229,7 @@ dummy:
 .PHONY: livehtml
 livehtml:
 	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+
+.PHONY: doc
+doc:
+	sphinx-apidoc -o source/modules/ -f -e ../wltrace

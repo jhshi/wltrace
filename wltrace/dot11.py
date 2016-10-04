@@ -128,6 +128,31 @@ MCS_TABLE = {
 
 
 def mcs_to_rate(mcs, bw=20, long_gi=True):
+    """Convert MCS index to rate in Mbps.
+
+    See http://mcsindex.com/
+
+    Args:
+        mcs (int): MCS index
+        bw (int): bandwidth, 20, 40, 80, ...
+        long_gi(bool): True if long GI is used.
+
+    Returns:
+        rate (float): bitrate in Mbps
+
+
+    >>> mcs_to_rate(5, bw=20, long_gi=False)
+    57.8
+
+    >>> mcs_to_rate(4, bw=40, long_gi=True)
+    81
+
+    >>> mcs_to_rate(3, bw=80, long_gi=False)
+    130
+
+    >>> mcs_to_rate(13, bw=160, long_gi=True)
+    936
+    """
     if bw not in [20, 40, 80, 160]:
         raise Exception("Unknown bandwidth: %d MHz" % (bw))
     if mcs not in MCS_TABLE:
@@ -140,6 +165,19 @@ def mcs_to_rate(mcs, bw=20, long_gi=True):
 
 
 def rate_to_mcs(rate, bw=20, long_gi=True):
+    """Convert bit rate to MCS index.
+
+    Args:
+        rate (float): bit rate in Mbps
+        bw (int): bandwidth, 20, 40, 80, ...
+        long_gi (bool): True if long GI is used.
+
+    Returns:
+        mcs (int): MCS index
+
+    >>> rate_to_mcs(120, bw=40, long_gi=False)
+    5
+    """
     if bw not in [20, 40, 80, 160]:
         raise Exception("Unknown bandwidth: %d MHz" % (bw))
     idx = int((math.log(bw/10, 2)-1)*2)
@@ -166,34 +204,49 @@ def is_broadcast(mac):
 
 
 def is_multicast(mac):
+    """Whether a MAC address is IPV4/V6 multicast address.
+
+    See https://en.wikipedia.org/wiki/Multicast_address#Ethernet
+
+    ARgs:
+        mac (str): MAC address
+
+    Returns:
+        bool
+
+    >>> is_multicast('01:80:C2:00:00:08')
+    True
+
+    """
     octet = int(mac.split(':')[0], base=16)
     return octet & 0x01 > 0
+
 
 def is_lowest_rate(rate):
     """Whether or not the rate is the lowest rate in rate table.
 
     Args:
-        rate (int): rate in 500 Kbps. Can be 802.11g/n rate.
+        rate (int): rate in Mbps . Can be 802.11g/n rate.
 
     Returns:
         bool: ``True`` if the rate is lowest, otherwise ``False``. Note that if
-          ``rate`` is not valid, this function returns ``False``, instead of
-          raising an exception.
+        ``rate`` is not valid, this function returns ``False``, instead of
+        raising an exception.
     """
     return rate_to_mcs(rate) == 0
 
 
 def is_highest_rate(rate):
-    """Whether or not the rate is the highest rate in rate table.
+    """Whether or not the rate is the highest rate (single spatial stream) in
+    rate table.
 
     Args:
-        rate (int): rate in 500 Kbps. Can be 802.11g/n rate.
+        rate (int): rate in Mbps. Can be 802.11g/n rate.
 
     Returns:
         bool: ``True`` if the rate is highest, otherwise ``False``. Note that if
-          ``rate`` is not valid, this function returns ``False``, instead of
-          raising an exception.
-
+        ``rate`` is not valid, this function returns ``False``, instead of
+        raising an exception.
     """
     return rate_to_mcs(rate) == 7
 
@@ -202,7 +255,7 @@ def is_ack(pkt):
     """Whether or not the packet is an ack packet.
 
     Args:
-        pkt (:class:`pyparser.capture.dot11.Dot11Packet`): the packet.
+        pkt (:class:`wltrace.dot11.Dot11Packet`): the packet.
 
     Returns:
         bool: ``True`` if it is an ack packet, otherwise ``False``.
@@ -212,22 +265,44 @@ def is_ack(pkt):
 
 
 def is_block_ack(pkt):
+    """Whether a packet is a Block Ack packet.
+    """
     return pkt.type == DOT11_TYPE_CONTROL and pkt.subtype == DOT11_SUBTYPE_BLOCK_ACK
 
 
 def is_beacon(pkt):
+    """Whether a packet is a Beacon packet.
+    """
     return pkt.type == DOT11_TYPE_MANAGEMENT and pkt.subtype == DOT11_SUBTYPE_BEACON
 
 
 def is_qos_data(pkt):
+    """Whether a packet is a QoS Data packet.
+    """
     return pkt.type == DOT11_TYPE_DATA and pkt.subtype == DOT11_SUBTYPE_QOS_DATA
 
 
 def next_seq(seq):
+    """Next sequence number.
+
+    Args:
+        seq (int): current sequence number
+
+    Returns:
+        int: next sequence number, may wrap around
+
+    >>> next_seq(3)
+    4
+
+    >>> next_seq(4095)
+    0
+    """
     return (seq + 1) % SEQ_NUM_MODULO
 
 
 class Beacon(object):
+    """Payload for 802.11 Beacon packet.
+    """
 
     def __init__(self, pkt):
         self.timestamp, self.interval, self.capabilities = pkt.unpack('<QHH')
@@ -393,4 +468,9 @@ class Dot11Packet(GenericHeader):
         return self.hash == other.hash
 
     def air_time(self):
+        """Duration of the packet in air.
+
+        Returns:
+            float: duration in seconds.
+        """
         return self.phy.len * 8 / self.phy.rate * 1e-6

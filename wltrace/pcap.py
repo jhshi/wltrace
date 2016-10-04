@@ -115,7 +115,8 @@ class PcapPacketHeader(GenericHeader):
         phy = pkt.phy.to_binary()
         incl_len = len(phy) + pkt.phy.caplen
         orig_len = len(phy) + pkt.phy.len
-        return '%s%s%s' % (struct.pack(pattern, ts_sec, ts_usec, incl_len, orig_len), phy, pkt.raw)
+        return '%s%s%s' % (struct.pack(pattern, ts_sec, ts_usec, incl_len,
+                                       orig_len), phy, pkt.raw)
 
 
 class PcapCapture(WlTrace):

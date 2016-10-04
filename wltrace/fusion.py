@@ -8,12 +8,16 @@ import numpy as np
 
 import progressbar as pbar
 
-from pyparser.capture import dot11
-from pyparser.capture import capture
-from pyparser.capture import pcap
-from pyparser.capture import utils
+import dot11
+import wltrace
+import pcap
+import utils
 
-from pyparser.capture.utils import logger
+import logging
+logging.basicConfig(
+    format='[%(asctime)s] %(levelname)s [%(filename)11s:%(lineno)4d] %(message)s',
+    level=logging.DEBUG)
+logger = logging.getLogger('pyparser')
 
 
 def arg_parser():
@@ -116,7 +120,7 @@ class Aggregator(object):
 
 def main():
     args = arg_parser().parse_args()
-    traces = [capture.load_file(p, aggregate_ack=False) for p in args.traces]
+    traces = [wltrace.load_file(p, aggregate_ack=False) for p in args.traces]
     fused = traces[0]
     logger.debug("Starting with %s" % (traces[0].path))
     for t in traces[1:]:

@@ -1,4 +1,4 @@
-"""Common interfaces for :mod:`pyparser.capture` module.
+"""Common interfaces.
 """
 
 import struct
@@ -21,7 +21,7 @@ class GenericHeader(object):
 
     PACK_PATTERN = None
     """:mod:`struct` format string used to decode the header bytes.
-  """
+    """
 
     FIELDS = None
     """A list of string representing name of each field in the header, in the
@@ -63,15 +63,17 @@ class PhyInfo(object):
     * signal (int): received RSSI in dBm.
     * noise (int): noise level in dBm.
     * freq_mhz (int): channel central frequency (MHz)
-    * channel (int): channel number.
+    * has_fcs (bool)
     * fcs_error (bool): True if this packet fails the FCS check.
-    * epoch_ts (float): Unix timestamp of the first bit of this packet
-    * end_epoc_ts (float): Unix timestamp of the last bit of this packet
-    * mcs (int): MCS index (http://mcsindex.com/)
+    * epoch_ts (float): POSIX timestamp of the first bit of this packet
+    * end_epoc_ts (float): POSIX timestamp of the last bit of this packet
     * rate (float): packet modulation rate (Mbps)
+    * mcs (int): MCS index (http://mcsindex.com/)
     * len (int): packet original length in bytes, including 4 FCS bytes.
     * caplen (int): actually stored bytes, probably smaller than ``len``.
-    # mactime: MAC layer TSF counter.
+    * mactime (int): MAC layer TSF counter.
+    * ampdu_ref (int): AMPDU reference number.
+    * last_ampdu (bool): True if this packet was the last packet in the AMPDU.
     """
 
     def __init__(self, *args, **kwargs):
@@ -83,6 +85,7 @@ class PhyInfo(object):
 
 
 import dot11
+
 
 class WlTrace(object):
     """Base class that represents a (wireless) packet trace.
@@ -219,12 +222,11 @@ class WlTrace(object):
             raise StopIteration()
 
     def peek(self):
+        """Get the current packet without consuming it.
+        """
         try:
             self._fetch()
             pkt = self.pkt_queue[0]
             return pkt
         except IndexError:
             raise StopIteration()
-
-    def appendleft(self, pkt):
-        self.pkt_queue.appendleft(pkt)

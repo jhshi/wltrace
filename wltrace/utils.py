@@ -17,6 +17,12 @@ def calc_padding(fmt, align):
 
     Returns:
         str: padding format (e.g., various number of 'x').
+
+    >>> calc_padding('b', 2)
+    'x'
+
+    >>> calc_padding('b', 3)
+    'xx'
     """
     remain = struct.calcsize(fmt) % align
     if remain == 0:
@@ -33,6 +39,12 @@ def align_up(offset, align):
 
     Returns:
         int: aligned offset.
+
+    >>> align_up(3, 2)
+    4
+
+    >>> align_up(3, 1)
+    3
     """
     remain = offset % align
     if remain == 0:
@@ -42,7 +54,9 @@ def align_up(offset, align):
 
 
 def win_ts_to_unix_epoch(high, low):
-    """Convert Windows timestamp to Unix timestamp.
+    """Convert Windows timestamp to POSIX timestamp.
+
+    See http://stackoverflow.com/questions/6161776/convert-windows-filetime-to-second-in-unix-linux
 
     Args:
         high (int): high 32 bits of windows timestamp.

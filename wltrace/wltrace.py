@@ -1,9 +1,9 @@
 """Wireless Packet Trace
 
 This module can load a packet trace, and yields a sequence of packets.
-Currently, only IEEE802.11 pakcet traces saved in Pcap or Omnipeek's peek-tagged
-format are supported. For Pcap format, this module can parse the Radiotap header
-if exists.
+Currently, only IEEE 802.11 (aka Wifi) pakcet traces saved in Pcap or Omnipeek's
+peek-tagged format are supported. For Pcap format, this module can parse the
+Radiotap header if exists.
 """
 
 import os
@@ -34,6 +34,12 @@ FILE_TYPE_HANDLER = {
 
 def is_packet_trace(path):
     """Determine if a file is a packet trace that is supported by this module.
+
+    Args:
+        path (str): path to the trace file.
+
+    Returns:
+        bool: True if the file is a valid packet trace.
     """
     path = os.path.abspath(path)
     if not os.path.isfile(path):
@@ -51,9 +57,9 @@ def is_packet_trace(path):
 
 
 def load_trace(path, *args, **kwargs):
-    """Read a packet trace file, return a :class:`pyparser.capture.common.WlTrace` object.
+    """Read a packet trace file, return a :class:`wltrace.common.WlTrace` object.
 
-    No packet trace type is needed, this function will read the file's magic
+    This function first reads the file's magic
     (first ``FILE_TYPE_HANDLER`` bytes), and automatically determine the
     file type, and call appropriate handler to process the file.
 
@@ -69,6 +75,3 @@ def load_trace(path, *args, **kwargs):
         raise Exception('Unknown file magic: %s' % (binascii.hexlify(magic)))
 
     return FILE_TYPE_HANDLER[magic](path, *args, **kwargs)
-
-
-

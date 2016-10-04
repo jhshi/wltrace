@@ -1,6 +1,4 @@
-
-
-from pyparser.capture import dot11
+from wltrace import dot11
 
 
 class CaptureQuality(object):
