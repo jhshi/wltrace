@@ -11,6 +11,7 @@ install:
             eval "$(pyenv init -)"
             pyenv install pypy-5.4.1
             pyenv global pypy-5.4.1
+            pip install git+https://bitbucket.org/pypy/numpy.git
         fi
     - pip install tox-travis
 script:
