@@ -227,4 +227,4 @@ dummy:
 
 .PHONY: livehtml
 livehtml:
-	sphinx-autobuild -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
