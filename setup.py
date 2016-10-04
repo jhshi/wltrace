@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 install_requires = [
     'python-dateutil>=2.5.3',
+    'progressbar>=2.3',
 ]
 
 if platform.python_implementation() == 'CPython':
