@@ -8,7 +8,7 @@ clean:
 	find ./$(PKG) -name "*.pyc" -exec rm -rfv {} \;
 
 test:
-	tox -r -vvv
+	tox -r
 
 publish: test
 	git diff-index --quiet HEAD --
