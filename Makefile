@@ -11,7 +11,9 @@ test:
 	tox -r
 
 publish: test
-	git diff-index --quiet HEAD --
+	# make sure git repo is clean
+	git status --porcelain
+	# make sure this version has not been published before
 	test ! `find $(DIST_DIR) -name "*$(VERSION)*" -quit`
 	@echo "Releasing version $(VERSION)"
 	make clean
