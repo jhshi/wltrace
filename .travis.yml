@@ -1,4 +1,5 @@
 language: python
+cache: pip
 env:
     - TOXENV=py27
     - TOXENV=pypy
