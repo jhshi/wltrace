@@ -194,5 +194,6 @@ class RadiotapHeader(common.GenericHeader):
             offset += struct.calcsize(fmt)
 
         header = struct.pack(cls.PACK_PATTERN, 0, 0,
-                             struct.calcsize(cls.PACK_PATTERN) + len(payload), present_flag)
+                             struct.calcsize(cls.PACK_PATTERN) + len(payload),
+                             present_flag)
         return header + payload

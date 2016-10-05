@@ -35,7 +35,8 @@ def test_pcap():
     assert pkt.phy.mcs is None
     assert pkt.phy.mactime == 84523414517
     assert pkt.phy.epoch_ts == pytest.approx(1474410869.121930000)
-    assert (pkt.phy.end_epoch_ts - pkt.air_time()) == pytest.approx(pkt.phy.epoch_ts)
+    assert (pkt.phy.end_epoch_ts - pkt.air_time()) ==\
+        pytest.approx(pkt.phy.epoch_ts)
 
     # MAC
     assert pkt.type == dot11.DOT11_TYPE_MANAGEMENT
@@ -79,7 +80,8 @@ def test_pkt():
     assert pkt.phy.mcs is None
     assert pkt.phy.mactime is None
     assert pkt.phy.epoch_ts == pytest.approx(1463018844.098017400)
-    assert (pkt.phy.end_epoch_ts - pkt.air_time()) == pytest.approx(pkt.phy.epoch_ts)
+    assert (pkt.phy.end_epoch_ts - pkt.air_time()) ==\
+        pytest.approx(pkt.phy.epoch_ts)
 
     # MAC
     assert pkt.type == dot11.DOT11_TYPE_DATA

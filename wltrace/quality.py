@@ -74,7 +74,8 @@ class CaptureQuality(object):
                         if pkt.retry:
                             # missed the first transmission
                             self.missing_tx_count += 1
-                        if not last_data_pkt.acked and not dot11.is_lowest_rate(last_data_pkt.phy.rate):
+                        if not last_data_pkt.acked and not\
+                                dot11.is_lowest_rate(last_data_pkt.phy.rate):
                             self.missing_ack_count += 1
                             self.missing_ack.append(last_data_pkt.counter)
 

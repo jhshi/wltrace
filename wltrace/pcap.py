@@ -38,8 +38,8 @@ class PcapHeader(GenericHeader):
     The format is documented here:
     https://wiki.wireshark.org/Development/LibpcapFileFormat
 
-    Note that the file header does not contain the total number of packets in the
-    file.
+    Note that the file header does not contain the total number of packets in
+    the file.
 
     Args:
         fh (file object): the packet trace file.
@@ -82,7 +82,8 @@ class PcapHeader(GenericHeader):
     def to_binary(cls, endian='@', snaplen=65535,
                   network=_LINKTYPE_IEEE802_11_RADIOTAP):
         pattern = '%s%s' % (endian, cls._PACK_PATTERN_BASE)
-        return struct.pack(pattern, _PCAP_FILE_MAGIC_NUMBER, _PCAP_VERSION_MAJOR,
+        return struct.pack(pattern, _PCAP_FILE_MAGIC_NUMBER,
+                           _PCAP_VERSION_MAJOR,
                            _PCAP_VERSION_MINOR, 0, 0, snaplen, network)
 
 
@@ -156,7 +157,8 @@ class PcapCapture(WlTrace):
 
         raw = self.fh.read(pkt_header.incl_len)
         if len(raw) != pkt_header.incl_len:
-            raise IOError("Short read: expect %d, got %d" % (pkt_header.incl_len, len(raw)))
+            raise IOError("Short read: expect %d, got %d" %
+                          (pkt_header.incl_len, len(raw)))
 
         pkt_fh = StringIO(raw)
         if self.header.network == _LINKTYPE_IEEE802_11_RADIOTAP:
@@ -191,11 +193,13 @@ class PcapCapture(WlTrace):
                 if pkt.phy.ampdu_ref is not None:
                     # read all packets in this ampdu
                     ampdu_ref = pkt.phy.ampdu_ref
-                    while pkt.phy.ampdu is not None and pkt.phy.ampdu_ref == ampdu_ref:
+                    while pkt.phy.ampdu is not None and\
+                            pkt.phy.ampdu_ref == ampdu_ref:
                         if pkt.phy.last_frame:
                             # update previous ampdu's rate info
                             for p in reversed(pkts):
-                                if p.phy.ampdu is None or p.phy.ampdu_ref != ampdu_ref:
+                                if p.phy.ampdu is None or\
+                                        p.phy.ampdu_ref != ampdu_ref:
                                     break
                                 p.phy.rate = pkt.phy.rate
                             break

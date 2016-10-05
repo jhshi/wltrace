@@ -9,7 +9,8 @@ UTC_EPOCH = datetime.datetime(1970, 1, 1)
 
 
 def calc_padding(fmt, align):
-    """Calculate how many padding bytes needed for ``fmt`` to be aligned to ``align``.
+    """Calculate how many padding bytes needed for ``fmt`` to be aligned to
+    ``align``.
 
     Args:
         fmt (str): :mod:`struct` format.
@@ -56,7 +57,7 @@ def align_up(offset, align):
 def win_ts_to_unix_epoch(high, low):
     """Convert Windows timestamp to POSIX timestamp.
 
-    See http://stackoverflow.com/questions/6161776/convert-windows-filetime-to-second-in-unix-linux
+    See https://goo.gl/VVX0nk
 
     Args:
         high (int): high 32 bits of windows timestamp.
@@ -71,8 +72,8 @@ def win_ts_to_unix_epoch(high, low):
 def win_ts(high, low):
     """Convert Windows timestamp to Unix timestamp.
 
-    Windows timestamp is a 64-bit integer, the value of which is the number of 100
-    ns intervals from 1/1/1601-UTC.
+    Windows timestamp is a 64-bit integer, the value of which is the number of
+    100 ns intervals from 1/1/1601-UTC.
 
     Args:
         high (int): high 32 bits of windows timestamp.

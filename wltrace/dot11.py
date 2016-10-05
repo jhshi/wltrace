@@ -188,7 +188,8 @@ def rate_to_mcs(rate, bw=20, long_gi=True):
         if abs(rates[idx] - rate) < 1e-3:
             return mcs
 
-    raise Exception("MCS not found: rate=%f, bw=%d, long_gi=%s" % (rate, bw, long_gi))
+    raise Exception("MCS not found: rate=%f, bw=%d, long_gi=%s" %
+                    (rate, bw, long_gi))
 
 
 def is_broadcast(mac):
@@ -267,13 +268,15 @@ def is_ack(pkt):
 def is_block_ack(pkt):
     """Whether a packet is a Block Ack packet.
     """
-    return pkt.type == DOT11_TYPE_CONTROL and pkt.subtype == DOT11_SUBTYPE_BLOCK_ACK
+    return pkt.type == DOT11_TYPE_CONTROL and\
+        pkt.subtype == DOT11_SUBTYPE_BLOCK_ACK
 
 
 def is_beacon(pkt):
     """Whether a packet is a Beacon packet.
     """
-    return pkt.type == DOT11_TYPE_MANAGEMENT and pkt.subtype == DOT11_SUBTYPE_BEACON
+    return pkt.type == DOT11_TYPE_MANAGEMENT and\
+        pkt.subtype == DOT11_SUBTYPE_BEACON
 
 
 def is_qos_data(pkt):
@@ -314,7 +317,8 @@ class Beacon(object):
 class Dot11Packet(GenericHeader):
     """IEEE802.11 packet.
 
-    This class parse as much as possible depending on the packet type and subtype.
+    This class parse as much as possible depending on the packet type and
+    subtype.
 
     Args:
         fh (file object): the file's read pointer points to the beginning of a
@@ -384,7 +388,8 @@ class Dot11Packet(GenericHeader):
         self.type = (self.fc & 0x000c) >> 2
         self.subtype = (self.fc & 0x00f0) >> 4
         for shift, flag in enumerate(['to_ds', 'from_ds', 'more_frag', 'retry',
-                                      'power', 'more_data', 'protected', 'order'], start=8):
+                                      'power', 'more_data', 'protected',
+                                      'order'], start=8):
             setattr(self, flag, (self.fc & (1 << shift)) > 0)
 
         self.payload = fh.read()

@@ -43,9 +43,9 @@ class PeektaggedSectionHeader(GenericHeader):
     Args:
         fh (file object): file to be read.
         load_payload (bool): whether or not read the payload from the file. By
-          default, it is ``False``. For small sections, such as "0x7fver", "sess",
-          it is no big deal. But for "pkts" section, which can be huge, we do not
-          want to load the entire section at once.
+            default, it is ``False``. For small sections, such as "0x7fver",
+            "sess", it is no big deal. But for "pkts" section, which can be
+            huge, we do not want to load the entire section at once.
     """
 
     PACK_PATTERN = '<4sII'
@@ -102,7 +102,8 @@ class PeektaggedPacketHeader(object):
             if tag == 0xffff:
                 break
 
-        if hasattr(self, 'ext_flags') and self.ext_flags & EXT_FLAGS_MCS_INDEX_USED:
+        if hasattr(self, 'ext_flags') and\
+                self.ext_flags & EXT_FLAGS_MCS_INDEX_USED:
             self.mcs = self.rate
             self.rate = dot11.mcs_to_rate(self.mcs)
         else:
@@ -111,8 +112,8 @@ class PeektaggedPacketHeader(object):
 
         self.epoch_ts = utils.win_ts_to_unix_epoch(self.ts_high, self.ts_low)
 
-        # the timestamp in the header is the last bit of the packet, convert it to
-        # the first bit of the packet
+        # the timestamp in the header is the last bit of the packet, convert it
+        # to the first bit of the packet
         if self.rate > 0:
             pkt_duration = self.len * 8 / self.rate * 1e-6
             self.end_epoch_ts = self.epoch_ts
@@ -123,7 +124,8 @@ class PeektaggedPacketHeader(object):
         self.fcs_error = (self.flags & 0x0002) > 0
 
     def to_phy(self):
-        """Convert this to the standard :class:`pyparser.capture.common.PhyInfo` class.
+        """Convert this to the standard :class:`pyparser.capture.common.PhyInfo`
+        class.
         """
         kwargs = {}
         for attr in ['signal', 'noise', 'freq_mhz', 'fcs_error', 'rate', 'mcs',
@@ -136,8 +138,8 @@ class PeektaggedPacketHeader(object):
 class PeektaggedCapture(WlTrace):
     """Peek-tagged capture file.
 
-    Here we know the total number of packets beforehand from the "sess"" section.
-    So this class has an extra ``total_packets`` attribute.
+    Here we know the total number of packets beforehand from the "sess"
+    section.  So this class has an extra ``total_packets`` attribute.
     """
 
     def __init__(self, path, *args, **kwargs):
@@ -180,7 +182,8 @@ class PeektaggedCapture(WlTrace):
                     break
 
                 pkt = dot11.Dot11Packet(StringIO(
-                    pkt_raw), phy=peektagged_header.to_phy(), counter=self.counter)
+                    pkt_raw), phy=peektagged_header.to_phy(),
+                    counter=self.counter)
                 self.counter += 1
                 pkts.append(pkt)
             except IOError:

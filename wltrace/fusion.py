@@ -15,7 +15,8 @@ import utils
 
 import logging
 logging.basicConfig(
-    format='[%(asctime)s] %(levelname)s [%(filename)11s:%(lineno)4d] %(message)s',
+    format='[%(asctime)s] %(levelname)s [%(filename)11s:%(lineno)4d]'
+    ' %(message)s',
     level=logging.DEBUG)
 logger = logging.getLogger('pyparser')
 
@@ -45,10 +46,10 @@ class Aggregator(object):
         if not isinstance(self.trace2, list):
             self.trace2 = list(self.trace2)
 
-        hash1 = OrderedDict((p.hash, p) for p in self.trace1 if dot11.is_beacon(p)
-                            and p.phy.mactime is not None)
-        hash2 = OrderedDict((p.hash, p) for p in self.trace2 if dot11.is_beacon(p)
-                            and p.phy.mactime is not None)
+        hash1 = OrderedDict((p.hash, p) for p in self.trace1
+                            if dot11.is_beacon(p) and p.phy.mactime is not None)
+        hash2 = OrderedDict((p.hash, p) for p in self.trace2
+                            if dot11.is_beacon(p) and p.phy.mactime is not None)
         common_hash = [h for h in hash1 if h in hash2]
 
         if self.verbose:
@@ -78,20 +79,22 @@ class Aggregator(object):
             drift = (t2_b - t1_b) - (t2_a - t1_a)
             self.drifts.append((duration, drift))
 
-            for p in self.trace2[hash2[first_beacon].counter:(hash2[second_beacon].counter - 1)]:
+            for p in self.trace2[hash2[first_beacon].counter:
+                                 (hash2[second_beacon].counter - 1)]:
                 if p.phy.mactime is not None:
                     p.phy.mactime = int(ratio * (p.phy.mactime - t1_b) + t1_a)
 
             self.merged_trace.append(hash1[first_beacon])
             for pkt in sorted(
-                    self.trace1[hash1[first_beacon].counter:(hash1[second_beacon].counter - 1)] +
+                    self.trace1[hash1[first_beacon].counter:
+                                (hash1[second_beacon].counter - 1)] +
                     self.trace2[hash2[first_beacon].counter:(
                         hash2[second_beacon].counter - 1)],
                     key=lambda p: p.phy.mactime):
                 if pkt.phy.mactime is None:
                     continue
-                if (pkt.phy.mactime - self.merged_trace[-1].phy.mactime) < 5 and\
-                        pkt.hash == self.merged_trace[-1].hash:
+                if (pkt.phy.mactime - self.merged_trace[-1].phy.mactime) < 5\
+                        and pkt.hash == self.merged_trace[-1].hash:
                     continue
                 self.merged_trace.append(pkt)
 
@@ -105,11 +108,14 @@ class Aggregator(object):
             intervals = [t[0] for t in self.drifts]
             drifts = [t[1] for t in self.drifts]
             logger.debug("Intervals: %d, min: %d, max: %d, mean: %d" %
-                         (len(intervals), min(intervals), max(intervals), np.mean(intervals)))
+                         (len(intervals), min(intervals), max(intervals),
+                          np.mean(intervals)))
             logger.debug("drifts: %d, min: %d, max: %d, mean: %d" %
-                         (len(drifts), min(drifts), max(drifts), np.mean(drifts)))
+                         (len(drifts), min(drifts), max(drifts),
+                          np.mean(drifts)))
             logger.debug("Trace1: %d, Trace2: %d, Merged: %d" %
-                         (len(self.trace1), len(self.trace2), len(self.merged_trace)))
+                         (len(self.trace1), len(self.trace2),
+                          len(self.merged_trace)))
 
         # adjust packet timestamp and counter
         for c, p in enumerate(self.merged_trace, start=1):

@@ -7,7 +7,6 @@ import io
 import collections
 
 
-
 class GenericHeader(object):
     """Base class for general header structure.
 
@@ -83,7 +82,6 @@ class PhyInfo(object):
             setattr(self, attr, kwargs.get(attr, None))
 
 
-
 import dot11
 
 
@@ -94,7 +92,8 @@ class WlTrace(object):
     interface of this object is to yield packet in order. In fact, the object
     itself is an iterator, which means the packets can only be accessed once in
     sequence. This is suffice for most purpose, and also reduces memory
-    consumption. Users can always store the packets outside this object if needed.
+    consumption. Users can always store the packets outside this object if
+    needed.
 
     Args:
         path (str): the path of the packet trace file.
@@ -165,7 +164,8 @@ class WlTrace(object):
                     pkt.ack_pkt = next_pkt
                     return
 
-            # if ack packet is not present, look for the next packet from the same station
+            # if ack packet is not present, look for the next packet from the
+            # same station
             next_pkt = None
             for p in self.pkt_queue:
                 if hasattr(p, 'addr2') and p.src == pkt.src:
@@ -192,7 +192,8 @@ class WlTrace(object):
         if pkt.type in [dot11.DOT11_TYPE_MANAGEMENT, dot11.DOT11_TYPE_DATA] and\
                 not dot11.is_broadcast(pkt.dest):
             for p in self.pkt_queue:
-                if hasattr(p, 'addr2') and p.src == pkt.src and hasattr(p, 'seq_num'):
+                if hasattr(p, 'addr2') and p.src == pkt.src and\
+                        hasattr(p, 'seq_num'):
                     if not p.retry or p.seq_num != pkt.seq_num:
                         break
                     p.retry_count = current_retry
@@ -201,8 +202,8 @@ class WlTrace(object):
     def next(self):
         """Iteration function.
 
-        Note that it is possible to yield dangling ack packets as well, so user can
-        detect if the sniffer missed the previous packet.
+        Note that it is possible to yield dangling ack packets as well, so user
+        can detect if the sniffer missed the previous packet.
         """
 
         try:
