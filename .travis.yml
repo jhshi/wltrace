@@ -12,10 +12,9 @@ install:
             pyenv install pypy-5.4.1
             pyenv global pypy-5.4.1
         fi
-    # - pip install tox-travis coveralls
     - pip install tox coveralls
 script:
-    - tox -r -e $TOXENV
+    - tox -e $TOXENV
 
 after_success:
     - coveralls

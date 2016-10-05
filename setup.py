@@ -14,16 +14,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 install_requires = [
     'python-dateutil>=2.5.3',
     'progressbar>=2.3',
+    'numpy>=1.10',
 ]
 
-if platform.python_implementation() == 'CPython':
-    install_requires.append('numpy>=1.10')
-elif platform.python_implementation() == 'PyPy':
-    try:
-        import numpy
-    except ImportError:
-        sys.stderr.write("Please first install Numpy for Pypy at https://bitbucket.org/pypy/numpy.\n")
-        raise
+dependency_links = [
+]
+
+if platform.python_implementation() == 'PyPy':
+    dependency_links.append('git+https://bitbucket.org/pypy/numpy')
 
 setup(
     name='wltrace',
@@ -50,5 +48,6 @@ setup(
     packages=find_packages(),
 
     install_requires=install_requires,
+    dependency_links=dependency_links,
     include_package_data=True,
 )
