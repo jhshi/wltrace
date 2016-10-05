@@ -14,14 +14,12 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 install_requires = [
     'python-dateutil>=2.5.3',
     'progressbar>=2.3',
-    'numpy>=1.10',
 ]
 
-dependency_links = [
-]
-
-if platform.python_implementation() == 'PyPy':
-    dependency_links.append('git+https://bitbucket.org/pypy/numpy')
+if platform.python_implementation() == 'CPython':
+    install_requires.append('numpy>=1.10')
+elif platform.python_implementation() == 'PyPy':
+    install_requires.append('numpy-pypy>=1.9')
 
 setup(
     name='wltrace',
@@ -48,6 +46,5 @@ setup(
     packages=find_packages(),
 
     install_requires=install_requires,
-    dependency_links=dependency_links,
     include_package_data=True,
 )
