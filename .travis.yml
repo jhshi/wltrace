@@ -1,22 +1,21 @@
 language: python
 env:
-    - TOXENV = py27
-    - TOXENV = pypy
+    - TOXENV=py27
+    - TOXENV=pypy
 install:
     - |
-        if [[ "${TOXENV}" = pypy ]]; then
+        if [[ "$TOXENV" = "pypy" ]]; then
             git clone https://github.com/yyuu/pyenv.git ~/.pyenv
             PYENV_ROOT="$HOME/.pyenv"
             PATH="$PYENV_ROOT/bin:$PATH"
             eval "$(pyenv init -)"
             pyenv install pypy-5.4.1
             pyenv global pypy-5.4.1
-            pip install git+https://bitbucket.org/pypy/numpy.git
         fi
     # - pip install tox-travis coveralls
     - pip install tox coveralls
 script:
-    - tox
+    - tox -e $TOXENV
 
 after_success:
     - coveralls
