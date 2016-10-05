@@ -7,6 +7,7 @@ addons:
     apt:
         packages:
             pypy-dev
+            liblapack-dev
 install:
     - |
         if [[ "$TOXENV" = "pypy" ]]; then
