@@ -3,6 +3,10 @@ cache: pip
 env:
     - TOXENV=py27
     - TOXENV=pypy
+addons:
+    apt:
+        packages:
+            pypy-dev
 install:
     - |
         if [[ "$TOXENV" = "pypy" ]]; then
