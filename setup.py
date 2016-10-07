@@ -41,7 +41,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: System :: Networking :: Monitoring',
     ],
-    keywords=['pcap', 'peektagged', 'trace'],
+    keywords=['pcap', 'radiotap', 'peektagged', 'trace'],
 
     packages=find_packages(),
 
