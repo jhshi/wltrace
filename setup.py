@@ -24,7 +24,7 @@ elif platform.python_implementation() == 'PyPy':
 setup(
     name='wltrace',
     version=__version__,
-    description="A library to parse wireless packet traces.",
+    description="A Python library to parse Pcap (w/ Radtiotap) and Peektagged packet traces.",
 
     author='Jinghao Shi',
     author_email='jhshi89@gmail.com',

@@ -9,8 +9,14 @@
     :target: https://coveralls.io/github/jhshi/wltrace?branch=master
 
 
-WlTrace: A Python Library to Parse Wireless Packet Traces
-=========================================================
+WlTrace: A Python Library to Pcap and Peektagged Packet Traces
+==============================================================
+
+Features
+--------
+
+- Support Pcap (w/ optical Radiotap header) and Peektagged format.
+- Simple and easy to use interface
 
 
 Installation
