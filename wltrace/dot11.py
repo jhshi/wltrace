@@ -395,15 +395,15 @@ class Dot11Packet(GenericHeader):
         self.payload = fh.read()
         self.offset = 0
 
-        if self.type == DOT11_TYPE_MANAGEMENT:
-            self.parse_mgmt()
-        elif self.type == DOT11_TYPE_DATA:
-            self.parse_data()
-        elif self.type == DOT11_TYPE_CONTROL:
-            try:
+        try:
+            if self.type == DOT11_TYPE_MANAGEMENT:
+                self.parse_mgmt()
+            elif self.type == DOT11_TYPE_DATA:
+                self.parse_data()
+            elif self.type == DOT11_TYPE_CONTROL:
                 self.parse_control()
-            except:
-                pass
+        except:
+            pass
 
         for attr in ['addr1', 'addr2', 'addr3', 'addr4']:
             if hasattr(self, attr):
