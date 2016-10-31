@@ -72,13 +72,13 @@ class PhyInfo(object):
     * caplen (int): actually stored bytes, probably smaller than ``len``.
     * mactime (int): MAC layer TSF counter.
     * ampdu_ref (int): AMPDU reference number.
-    * last_ampdu (bool): True if this packet was the last packet in the AMPDU.
+    * last_frame (bool): True if this packet was the last packet in the AMPDU.
     """
 
     def __init__(self, *args, **kwargs):
         for attr in ['signal', 'noise', 'freq_mhz', 'has_fcs', 'fcs_error',
                      'epoch_ts', 'end_epoch_ts', 'rate', 'mcs', 'len', 'caplen',
-                     'mactime', 'ampdu_ref', 'last_ampdu']:
+                     'mactime', 'ampdu_ref', 'last_frame']:
             setattr(self, attr, kwargs.get(attr, None))
 
 

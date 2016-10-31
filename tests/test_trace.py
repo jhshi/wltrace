@@ -37,6 +37,8 @@ def test_pcap():
     assert pkt.phy.epoch_ts == pytest.approx(1474410869.121930000)
     assert (pkt.phy.end_epoch_ts - pkt.air_time()) ==\
         pytest.approx(pkt.phy.epoch_ts)
+    assert pkt.phy.ampdu_ref is None
+    assert pkt.phy.last_frame
 
     # MAC
     assert pkt.type == dot11.DOT11_TYPE_MANAGEMENT
@@ -54,6 +56,8 @@ def test_pcap():
     assert pkt.src == '10:fe:ed:e5:8c:97'
     assert pkt.seq_num == 2651
     assert pkt.frag_num == 0
+
+    assert pkt.crc_ok
 
 
 def test_pkt():

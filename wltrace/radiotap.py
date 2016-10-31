@@ -97,40 +97,45 @@ class RadiotapHeader(common.GenericHeader):
             raise Exception('Short read: expect %d, got %d' %
                             (rest_len, len(rest)))
 
-        offset = 0
+        self.payload = rest
+        self.offset = 0
+
         present = self._it_present
+        shift = 32
         while (present >> 31) > 0:
-            present, = struct.unpack_from('<I', rest, offset)
-            offset += 4
-            self._it_present = (present << (offset*8)) + self._it_present
+            present, = self.unpack('<I')
+            self._it_present = (present << shift) + self._it_present
+            shift += 32
 
         for idx, fmt, field, align in cls.PRESENT_FLAGS:
             if self._it_present & (1 << idx):
-                offset = utils.align_up(offset, align)
-                val = struct.unpack_from(fmt, rest, offset)
+                self.offset = utils.align_up(self.offset, align)
+                val = self.unpack(fmt)
                 if len(val) == 1:
                     val = val[0]
                 setattr(self, field, val)
-                offset += struct.calcsize(fmt)
             else:
                 setattr(self, field, None)
 
         if self._it_present & _PRESENT_FLAG_CHANNEL:
             self.freq_mhz = self._channel & 0x0000ffff
             self.freq_flag = self._channel >> 16
+            delattr(self, '_channel')
         else:
             self.freq_mhz = None
             self.freq_flag = None
 
         if self._it_present & _PRESENT_FLAG_FLAG:
-            self.has_fcs = self._flags & _FLAG_HAS_FCS
+            self.has_fcs = self._flags & _FLAG_HAS_FCS > 0
             self.fcs_error = self._flags & _FLAG_FCS_ERROR
         else:
             self.has_fcs = False
-            self.fcs_error = None
+            self.fcs_error = False
 
         if self._it_present & _PRESENT_FLAG_RATE:
             self.rate /= 2.0
+        else:
+            self.rate = 0
 
         if self._it_present & _PRESENT_FLAG_MCS:
             mcs_known, mcs_flags, self.mcs = self.mcs
@@ -140,10 +145,15 @@ class RadiotapHeader(common.GenericHeader):
                 bw = 40
             long_gi = (mcs_flags & 0x4) == 0
             self.rate = dot11.mcs_to_rate(self.mcs, bw, long_gi)
+        else:
+            self.mcs = None
 
         if self._it_present & _PRESENT_FLAG_AMPDU:
             self.ampdu_ref, ampdu_flag = self._ampdu
             self.last_frame = ampdu_flag & 0x8 > 0
+        else:
+            self.ampdu_ref = None
+            self.last_frame = True
 
     @classmethod
     def from_phy_info(cls, phy):

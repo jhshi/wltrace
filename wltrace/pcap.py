@@ -187,19 +187,17 @@ class PcapCapture(WlTrace):
             return []
 
         pkts = []
-        for unused in xrange(n):
+        for _ in xrange(n):
             try:
                 pkt = self._read_one_pkt()
                 if pkt.phy.ampdu_ref is not None:
                     # read all packets in this ampdu
                     ampdu_ref = pkt.phy.ampdu_ref
-                    while pkt.phy.ampdu is not None and\
-                            pkt.phy.ampdu_ref == ampdu_ref:
+                    while pkt.phy.ampdu_ref == ampdu_ref:
                         if pkt.phy.last_frame:
                             # update previous ampdu's rate info
                             for p in reversed(pkts):
-                                if p.phy.ampdu is None or\
-                                        p.phy.ampdu_ref != ampdu_ref:
+                                if p.phy.ampdu_ref != ampdu_ref:
                                     break
                                 p.phy.rate = pkt.phy.rate
                             break
@@ -212,5 +210,9 @@ class PcapCapture(WlTrace):
                 self.fh.close()
                 self.fh = None
                 break
+            except:
+                print pkt.counter
+                print pkt.phy.__dict__
+                raise
 
         return pkts

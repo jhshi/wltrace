@@ -422,6 +422,7 @@ class Dot11Packet(GenericHeader):
         self._hash = None
 
         fh.close()
+        self._crc_ok = None
 
     @property
     def src(self):
@@ -479,3 +480,16 @@ class Dot11Packet(GenericHeader):
             float: duration in seconds.
         """
         return self.phy.len * 8 / self.phy.rate * 1e-6
+
+    @property
+    def crc_ok(self):
+        if self._crc_ok is not None:
+            return self._crc_ok
+
+        if len(self.raw) <= 4:
+            return False
+
+        expected_crc = binascii.crc32(self.raw[:-4]) & 0xffffffff
+        got_crc,  = struct.unpack('<I', self.raw[-4:])
+        self._crc_ok = expected_crc == got_crc
+        return self._crc_ok

@@ -7,6 +7,18 @@ import binascii
 
 UTC_EPOCH = datetime.datetime(1970, 1, 1)
 
+POLY = [
+    1, 0, 0, 0,         # 32 -- 29
+    0, 0, 1, 0,         # 28 -- 25
+    0, 1, 1, 0,         # 24 -- 21
+    0, 0, 0, 0,         # 20 -- 17
+    1, 0, 0, 0,         # 16 -- 13
+    1, 1, 1, 0,         # 12 -- 9
+    1, 1, 0, 1,         # 8  -- 5
+    1, 0, 1, 1,         # 4  -- 1
+    1,                  # 0
+]
+
 
 def calc_padding(fmt, align):
     """Calculate how many padding bytes needed for ``fmt`` to be aligned to
