@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+1.0.8 (2016-11-09)
+------------------
+
+Do not use Wheel distribution. Causing problems with pypy installation.
+
 1.0.7 (2016-10-31)
 ------------------
 
