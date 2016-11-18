@@ -201,7 +201,7 @@ def rate_to_mcs(rate, bw=20, long_gi=True):
 
     # failed. Try dot11a rates
     for idx, r in enumerate(DOT11A_RATES):
-        if abs(r-rate) < 1e3:
+        if abs(r-rate) < 1e-3:
             return idx
 
     raise Exception("MCS not found: rate=%f, bw=%d, long_gi=%s" %
