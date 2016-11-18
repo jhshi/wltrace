@@ -10,6 +10,9 @@ clean:
 test:
 	tox -r
 
+dist:
+	python setup.py sdist
+
 publish: test
 	# make sure git repo is clean
 	git status --porcelain
@@ -21,4 +24,4 @@ publish: test
 	git tag -a $(VERSION) -m "v$(VERSION)"
 	git push origin --tags
 
-.PHONY: test clean publish
+.PHONY: test clean publish dist
