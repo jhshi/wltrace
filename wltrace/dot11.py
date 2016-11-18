@@ -126,6 +126,17 @@ MCS_TABLE = {
     15: [130, 144.4, 270, 300, 585, 650, 1170, 1300],
 }
 
+DOT11A_RATES = [
+    6,
+    9,
+    12,
+    18,
+    24,
+    36,
+    48,
+    54
+]
+
 
 def mcs_to_rate(mcs, bw=20, long_gi=True):
     """Convert MCS index to rate in Mbps.
@@ -187,6 +198,11 @@ def rate_to_mcs(rate, bw=20, long_gi=True):
     for mcs, rates in MCS_TABLE.items():
         if abs(rates[idx] - rate) < 1e-3:
             return mcs
+
+    # failed. Try dot11a rates
+    for idx, r in enumerate(DOT11A_RATES):
+        if abs(r-rate) < 1e3:
+            return idx
 
     raise Exception("MCS not found: rate=%f, bw=%d, long_gi=%s" %
                     (rate, bw, long_gi))
