@@ -111,7 +111,7 @@ def test_pkt():
 
 
 def test_non_radiotap():
-    path = os.path.join(TEST_INPUT_DIR, 'test_non_radiotap.pcap')
+    path = os.path.join(TEST_INPUT_DIR, 'non_radiotap.pcap')
     assert wltrace.is_packet_trace(path)
 
     trace = wltrace.load_trace(path)
