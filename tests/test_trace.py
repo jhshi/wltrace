@@ -108,3 +108,13 @@ def test_pkt():
     assert pkt.acked
     assert pkt.ack_pkt is not None
     assert pkt.ack_pkt.counter == 2
+
+
+def test_non_radiotap():
+    path = os.path.join(TEST_INPUT_DIR, 'test_non_radiotap.pcap')
+    assert wltrace.is_packet_trace(path)
+
+    trace = wltrace.load_trace(path)
+    pkts = list(trace)
+
+    assert len(pkts) == 2001
