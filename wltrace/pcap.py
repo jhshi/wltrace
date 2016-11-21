@@ -167,7 +167,7 @@ class PcapCapture(WlTrace):
             phy.len = pkt_header.orig_len - rh._it_len
             phy.caplen = pkt_header.incl_len - rh._it_len
         else:
-            phy = PhyInfo(has_fcs=False, len=self.header.orig_len)
+            phy = PhyInfo(has_fcs=False, len=pkt_header.orig_len)
             phy.caplen = pkt_header.incl_len
 
         phy.epoch_ts = pkt_header.epoch_ts
@@ -210,9 +210,5 @@ class PcapCapture(WlTrace):
                 self.fh.close()
                 self.fh = None
                 break
-            except:
-                print pkt.counter
-                print pkt.phy.__dict__
-                raise
 
         return pkts
