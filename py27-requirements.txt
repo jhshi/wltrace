@@ -1,2 +1,2 @@
-numpy==1.11.1
+numpy==1.22.0
 -r common-requirements.txt
